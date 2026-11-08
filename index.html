@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Katalog & Landing Page Toko</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          },
+          aspectRatio: {
+            'youtube': '16 / 9',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Animasi Floating Logo */
+    @keyframes floatAnimation {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .floating-logo {
+      animation: floatAnimation 3s ease-in-out infinite;
+    }
+    /* Hide scrollbar for category tabs */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col font-sans">
+
+  <!-- ==================== INTERNET OFFLINE WARNING (POINT 14) ==================== -->
+  <div id="offline-toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden bg-red-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-sm font-medium border border-red-400 animate-bounce">
+    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+    <span>Koneksi Internet Terputus! Cek kembali jaringan atau kuota internet kamu.</span>
+  </div>
+
+  <!-- ==================== HEADER DENGAN LOGO FLOATING & THEME TOGGLE (POINT 1) ==================== -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo Floating (Klik 5 kali untuk membongkar portal Admin rahasia) -->
+      <div class="flex items-center space-x-3 cursor-pointer select-none" id="brand-logo-btn" title="Klik logo untuk reset / Klik 5x untuk akses Admin">
+        <div class="floating-logo w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/30">
+          <i class="fa-solid fa-cube text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white leading-tight flex items-center gap-1.5">
+            MegaStore <span class="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded">Pro</span>
+          </h1>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400">Pusat Material, Digital & Properti</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons: Theme Toggle & Admin Shortcut -->
+      <div class="flex items-center space-x-2">
+        <!-- Tombol Dark/Light -->
+        <button id="theme-toggle" class="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition" title="Ganti Mode Gelap/Terang">
+          <i id="theme-icon" class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== BANNER IMAGE SLIDER YOUTUBE RATIO 16:9 (POINT 2) ==================== -->
+  <section class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-2 w-full">
+    <div class="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg bg-gray-200 dark:bg-gray-800 group border border-gray-100 dark:border-gray-800">
+      
+      <!-- Slide Containers -->
+      <div id="slider-track" class="relative w-full h-full flex transition-transform duration-500 ease-out">
+        <!-- Slide Items rendered dynamically via JS -->
+      </div>
+
+      <!-- Loading Overlay untuk Slider -->
+      <div id="slider-loader" class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center text-white hidden">
+        <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
+      </div>
+
+      <!-- Navigation Left Button -->
+      <button id="prev-slide-btn" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition opacity-90 hover:opacity-100">
+        <i class="fa-solid fa-chevron-left text-xs sm:text-base"></i>
+      </button>
+
+      <!-- Navigation Right Button -->
+      <button id="next-slide-btn" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition opacity-90 hover:opacity-100">
+        <i class="fa-solid fa-chevron-right text-xs sm:text-base"></i>
+      </button>
+
+      <!-- Dots Indicators -->
+      <div id="slider-dots" class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10">
+        <!-- Dots rendered via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MAIN CONTENT & DISPLAY PRODUK (POINT 3, 4, 10, 16) ==================== -->
+  <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 flex-grow w-full">
+    
+    <!-- CATEGORY TABS SELECTOR (Point 16: Font & Icon adaptif) -->
+    <div class="mb-5">
+      <div class="flex items-center justify-between mb-2 px-1">
+        <h2 class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-shapes text-blue-600"></i>
+          Pilih Kategori
+        </h2>
+        <span id="active-category-indicator" class="text-xs text-gray-500 dark:text-gray-400 font-medium"></span>
+      </div>
+
+      <!-- Scrollable Category List with icons & shrinking texts for mobile -->
+      <div id="category-tabs" class="flex overflow-x-auto space-x-2 py-1 no-scrollbar pb-2">
+        <!-- Categories injected by JS -->
+      </div>
+    </div>
+
+    <!-- PRODUCT DISPLAY GRID (Point 3, 8, 16: Mobile 3 produk per baris, PC ukuran besar proporsional) -->
+    <section class="mb-10">
+      <div class="flex items-center justify-between mb-3 px-1">
+        <div>
+          <h2 id="section-title" class="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+            Semua Produk
+          </h2>
+          <p id="section-desc" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+            Pilihan produk berkualitas dengan pemesanan langsung.
+          </p>
+        </div>
+      </div>
+
+      <!-- Product Cards Container -->
+      <div id="product-grid" class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+        <!-- Cards generated via JS -->
+      </div>
+
+      <!-- Empty state container -->
+      <div id="empty-state" class="hidden py-12 text-center text-gray-500 dark:text-gray-400">
+        <i class="fa-regular fa-folder-open text-4xl mb-3 text-gray-400"></i>
+        <p class="text-sm">Belum ada produk di kategori ini.</p>
+      </div>
+    </section>
+
+    <!-- PRODUK PALING LARIS / BEST SELLER SECTION (POINT 10) -->
+    <section class="mb-12 pt-4 border-t border-gray-200 dark:border-gray-800">
+      <div class="flex items-center justify-between mb-3 px-1">
+        <div class="flex items-center space-x-2">
+          <span class="p-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-lg text-xs">
+            <i class="fa-solid fa-fire"></i>
+          </span>
+          <h2 class="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+            Produk Paling Laris
+          </h2>
+        </div>
+        <span class="text-[11px] sm:text-xs text-blue-600 dark:text-blue-400 font-semibold">Rekomendasi Utama</span>
+      </div>
+
+      <!-- Best Seller Grid (Mobile 3 cards, Desktop 4-5) -->
+      <div id="bestseller-grid" class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER PENJELASAN TOKO & WA (POINT 11) ==================== -->
+  <footer class="bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 py-8 px-4 sm:px-6 lg:px-8 mt-auto">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+      
+      <!-- Kolom 1: Profil Toko -->
+      <div>
+        <div class="flex items-center space-x-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <h3 class="font-bold text-base text-gray-900 dark:text-white">MegaStore Pro</h3>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400 leading-relaxed text-xs sm:text-sm">
+          Platform pemesanan Produk Digital, Material Bangunan, Layanan Studio Desain, dan Manajemen Bangun Rumah & Kos terpercaya.
+        </p>
+      </div>
+
+      <!-- Kolom 2: Alamat Toko -->
+      <div>
+        <h4 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-location-dot text-red-500"></i> Alamat Workshop & Kantor
+        </h4>
+        <p class="text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed" id="footer-address">
+          Jl. Merdeka Karya No. 88, Kawasan Niaga Utama, Jakarta Selatan, DKI Jakarta 12540.
+        </p>
+        <p class="text-[11px] text-gray-400 mt-1">Buka: Senin - Sabtu (08.00 - 17.00 WIB)</p>
+      </div>
+
+      <!-- Kolom 3: Kontak WhatsApp Langsung -->
+      <div>
+        <h4 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+          <i class="fa-brands fa-whatsapp text-emerald-500 text-base"></i> Hubungi Kami Langsung
+        </h4>
+        <p class="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
+          Konsultasi produk dan respon cepat admin via WhatsApp:
+        </p>
+        <a id="footer-wa-link" href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-md shadow-emerald-600/20">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span>Chat WhatsApp (+62 812-3456-7890)</span>
+        </a>
+      </div>
+
+    </div>
+
+    <div class="max-w-7xl mx-auto border-t border-gray-100 dark:border-gray-800/80 mt-6 pt-4 text-center text-xs text-gray-400">
+      &copy; 2026 MegaStore Pro. Terintegrasi GitHub Pages & Cloudflare.
+    </div>
+  </footer>
+
+  <!-- ==================== MODAL DETAIL PRODUK & MULTI FOTO (POINT 5, 7, 17) ==================== -->
+  <div id="product-detail-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 transition-opacity">
+    <div class="bg-white dark:bg-gray-900 w-full max-w-2xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Top Modal Navigation bar -->
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50/70 dark:bg-gray-800/50">
+        <div class="flex items-center gap-2">
+          <button id="modal-back-btn" class="p-2 -ml-1 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition" title="Kembali">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400" id="modal-category-name">Kategori</span>
+        </div>
+        <button id="modal-close-btn" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+        
+        <!-- Multi-Photo Gallery (Point 17: Tampak depan, dimensi, belakang dll) -->
+        <div>
+          <!-- Main Display Picture (Rasio 200x300 atau proporsional) -->
+          <div class="w-full aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 relative flex items-center justify-center">
+            <img id="modal-main-img" src="" alt="Detail Produk" class="w-full h-full object-contain transition-all duration-300" onerror="this.src='https://placehold.co/600x400/2563eb/ffffff?text=Gambar+Produk'" />
+            <div id="modal-img-loading" class="absolute inset-0 flex items-center justify-center bg-gray-900/20 backdrop-blur-xs hidden">
+              <i class="fa-solid fa-spinner fa-spin text-2xl text-white"></i>
+            </div>
+          </div>
+
+          <!-- Thumbnail Gallery List -->
+          <div id="modal-thumbnails" class="flex gap-2 mt-2 overflow-x-auto pb-1 no-scrollbar">
+            <!-- Injected thumbnails via JS -->
+          </div>
+        </div>
+
+        <!-- Title & Price Badge -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
+          <div>
+            <h3 id="modal-title" class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white leading-snug">Nama Produk</h3>
+            <span id="modal-badge-bestseller" class="hidden inline-block text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 px-2 py-0.5 rounded-full mt-1">Terlaris</span>
+          </div>
+          <div class="text-left sm:text-right">
+            <div id="modal-price" class="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">Rp 0</div>
+          </div>
+        </div>
+
+        <!-- Description Section -->
+        <div>
+          <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Deskripsi Lengkap</h4>
+          <div id="modal-description" class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+            Deskripsi produk...
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action (Point 5 & 7: Tombol Back / Home & Tombol Beli Tab Baru) -->
+      <div class="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between gap-3">
+        <button id="modal-footer-back-btn" class="px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Kembali</span>
+        </button>
+
+        <!-- Tombol Beli / Checkout (Membuka link tujuan di Tab Baru) -->
+        <a id="modal-buy-link" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold text-center transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/30">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Beli Sekarang / Pesan</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MODAL LOGIN ADMIN & PASSWORD (POINT 1 & 15) ==================== -->
+  <div id="admin-login-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-900 w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-gray-200 dark:border-gray-800 relative">
+      <button id="close-login-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-2 text-xl">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Admin Authentication</h3>
+        <p class="text-xs text-gray-500">Hanya pengelola toko yang memiliki akses kontrol</p>
+      </div>
+
+      <form id="admin-login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Kata Sandi Admin</label>
+          <input type="password" id="admin-pass-input" placeholder="Masukkan password (default: admin123)" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" required />
+          <p id="login-error-msg" class="text-xs text-red-500 mt-1.5 hidden flex items-center gap-1">
+            <i class="fa-solid fa-circle-exclamation"></i> Password salah! Coba default: admin123
+          </p>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition shadow-md shadow-blue-500/20">
+          Masuk ke Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== DASHBOARD ADMIN PANEL LENGKAP (POINT 9, 12, 13, 18, 19, 20) ==================== -->
+  <div id="admin-dashboard-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white dark:bg-gray-900 w-full max-w-5xl h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800">
+      
+      <!-- Admin Topbar -->
+      <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Panel Kelola Toko & Database</h2>
+            <p class="text-[11px] text-gray-500">Sinkronisasi Blogspot, Banner, Kategori & Excel</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <!-- Excel Export & Import (Point 18) -->
+          <button id="export-excel-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm" title="Download data dalam format Excel / CSV">
+            <i class="fa-solid fa-file-excel"></i>
+            <span class="hidden sm:inline">Export Excel</span>
+          </button>
+          
+          <label class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1.5 shadow-sm cursor-pointer" title="Import data produk dari Excel / CSV">
+            <i class="fa-solid fa-file-import"></i>
+            <span class="hidden sm:inline">Import Excel</span>
+            <input type="file" id="import-excel-file" accept=".csv" class="hidden" />
+          </label>
+
+          <button id="admin-logout-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-1" title="Keluar dari Admin">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span class="hidden sm:inline">Keluar</span>
+          </button>
+
+          <button id="close-admin-panel-btn" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Admin Tabs -->
+      <div class="flex border-b border-gray-200 dark:border-gray-800 bg-gray-100/70 dark:bg-gray-800/40 px-4 gap-4 text-xs font-semibold overflow-x-auto no-scrollbar">
+        <button class="admin-tab-btn py-3 border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 font-bold" data-target="admin-products-view">
+          <i class="fa-solid fa-box mr-1"></i> Kelola Produk
+        </button>
+        <button class="admin-tab-btn py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" data-target="admin-categories-view">
+          <i class="fa-solid fa-tags mr-1"></i> Kelola Kategori
+        </button>
+        <button class="admin-tab-btn py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" data-target="admin-sliders-view">
+          <i class="fa-solid fa-images mr-1"></i> Slide Thumbnail 16:9
+        </button>
+        <button class="admin-tab-btn py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" data-target="admin-settings-view">
+          <i class="fa-solid fa-gear mr-1"></i> Info Toko
+        </button>
+      </div>
+
+      <!-- Admin Panel View Contents -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 dark:bg-gray-900/50">
+
+        <!-- TAB 1: KELOLA PRODUK (ADD / EDIT) -->
+        <div id="admin-products-view" class="space-y-6">
+          <!-- Form Input Produk -->
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 id="product-form-title" class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-plus-circle text-blue-600"></i> Tambah Produk Baru
+            </h3>
+            
+            <form id="product-crud-form" class="space-y-3">
+              <input type="hidden" id="crud-product-id" value="" />
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Nama Produk *</label>
+                  <input type="text" id="crud-product-name" required placeholder="Contoh: Source Code Web Pro / Granit 60x60" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Kategori Produk *</label>
+                  <select id="crud-product-cat" required class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500">
+                    <!-- Populated via JS -->
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Harga Display (Teks/Rupiah) *</label>
+                  <input type="text" id="crud-product-price" required placeholder="Contoh: Rp 250.000 / Free Konsultasi" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Link Pembelian / Belanja (Point 7) *</label>
+                  <input type="url" id="crud-product-buyurl" required placeholder="https://tokopedia.com/... atau wa.me/..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+              </div>
+
+              <!-- Input Multi Link Image Blogspot (Point 7, 17) -->
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Link Gambar Utama & Tambahan dari Blogspot (Pisahkan dengan koma jika ada foto dimensi / tampak depan / belakang) *
+                </label>
+                <textarea id="crud-product-images" rows="2" required placeholder="https://1.bp.blogspot.com/.../utama.jpg, https://1.bp.blogspot.com/.../tampak_depan.jpg, https://1.bp.blogspot.com/.../dimensi.jpg" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Upload foto Anda ke draft/postingan Blogspot, klik kanan 'Salin Alamat Gambar', lalu tempel link di sini.</p>
+              </div>
+
+              <!-- Deskripsi Produk (Point 9) -->
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Deskripsi Lengkap Produk *</label>
+                <textarea id="crud-product-desc" rows="3" required placeholder="Tuliskan spesifikasi, keunggulan, ukuran, cara pemesanan dll..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <input type="checkbox" id="crud-product-bestseller" class="rounded text-blue-600 focus:ring-0 w-4 h-4" />
+                <label for="crud-product-bestseller" class="text-xs text-gray-700 dark:text-gray-300 font-medium">Tandai sebagai Produk Terlaris (Masuk ke list Best Seller)</label>
+              </div>
+
+              <!-- Action Buttons (Point 20: Save & Sync) -->
+              <div class="flex items-center gap-2 pt-2">
+                <button type="submit" id="save-product-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <span>Simpan & Sinkronkan Produk</span>
+                </button>
+                <button type="button" id="cancel-product-btn" class="hidden px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-semibold">
+                  Batal Edit
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabel List Produk Terdaftar -->
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h4 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">Daftar Produk Aktif</h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+                <thead class="bg-gray-100 dark:bg-gray-700/60 uppercase text-[10px] text-gray-700 dark:text-gray-300">
+                  <tr>
+                    <th class="p-2.5">Foto</th>
+                    <th class="p-2.5">Nama & Kategori</th>
+                    <th class="p-2.5">Harga</th>
+                    <th class="p-2.5">Best Seller?</th>
+                    <th class="p-2.5 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-product-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+                  <!-- Injected rows via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: KELOLA KATEGORI (POINT 12) -->
+        <div id="admin-categories-view" class="space-y-6 hidden">
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-folder-plus text-blue-600"></i> Tambah / Edit Kategori
+            </h3>
+            <form id="category-crud-form" class="space-y-3">
+              <input type="hidden" id="crud-cat-id" value="" />
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Nama Kategori *</label>
+                  <input type="text" id="crud-cat-name" required placeholder="Contoh: Jasa Arsitek" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Icon FontAwesome (opsional)</label>
+                  <input type="text" id="crud-cat-icon" placeholder="fa-cube / fa-laptop / fa-hammer" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Deskripsi Singkat</label>
+                  <input type="text" id="crud-cat-desc" placeholder="Koleksi layanan arsitek..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                </div>
+              </div>
+              <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Kategori
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h4 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">Daftar Kategori</h4>
+            <div id="admin-category-list" class="space-y-2">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: KELOLA SLIDER THUMBNAIL (POINT 2) -->
+        <div id="admin-sliders-view" class="space-y-6 hidden">
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-image text-blue-600"></i> Tambah Banner Slider (Rasio 16:9 ala YouTube)
+            </h3>
+            <form id="slider-crud-form" class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Link Gambar Banner dari Blogspot (16:9) *</label>
+                <input type="url" id="crud-slider-url" required placeholder="https://1.bp.blogspot.com/.../banner-youtube-ratio.jpg" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Judul / Slogan Banner</label>
+                  <input type="text" id="crud-slider-title" placeholder="Promo Diskon Material 2026" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Link Klik (opsional)</label>
+                  <input type="text" id="crud-slider-link" placeholder="# atau https://..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                </div>
+              </div>
+              <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-plus"></i> Tambahkan Slide
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h4 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">Slide yang Sedang Tayang</h4>
+            <div id="admin-slider-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: PENGATURAN TOKO (POINT 11 & PASSWORD) -->
+        <div id="admin-settings-view" class="space-y-6 hidden">
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-3">Pengaturan Informasi & Keamanan</h3>
+            <form id="settings-form" class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Alamat Fisik / Workshop Toko</label>
+                <textarea id="set-address" rows="2" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none"></textarea>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Nomor WhatsApp Toko (Awali 62...)</label>
+                <input type="text" id="set-phone" placeholder="6281234567890" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+              </div>
+              <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Ubah Password Admin</label>
+                <input type="text" id="set-password" placeholder="Password baru" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+              </div>
+              <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-check"></i> Simpan Pengaturan Toko
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== LOGIKA UTAMA APLIKASI (JAVASCRIPT) ==================== -->
+  <script>
+    /* ==========================================================================
+       DATA DEFAULT & INISIALISASI DATABASE LOCAL IN-MEMORY
+       ========================================================================== */
+    const DEFAULT_CATEGORIES = [
+      { id: 'cat-digital', name: 'Produk Digital', icon: 'fa-laptop-code', desc: 'Source code, template & aset desain' },
+      { id: 'cat-material', name: 'Produk Material', icon: 'fa-cubes-stacked', desc: 'Bahan bangunan berkualitas tinggi' },
+      { id: 'cat-studio', name: 'Design Studio', icon: 'fa-compass-drafting', desc: 'Jasa desain arsitektur & interior' },
+      { id: 'cat-bangunkos', name: 'Bangun Kos', icon: 'fa-building-user', desc: 'Paket konstruksi & renovasi kos-kosan' }
+    ];
+
+    const DEFAULT_SLIDERS = [
+      {
+        id: 's-1',
+        title: 'Koleksi Desain Studio & Kos Modern 2026',
+        imageUrl: 'https://placehold.co/1280x720/1e3a8a/ffffff?text=Promo+Desain+Studio+%26+Bangun+Kos+(16:9)',
+        link: '#'
+      },
+      {
+        id: 's-2',
+        title: 'Material Granit & Pasir Pilihan Terbaik',
+        imageUrl: 'https://placehold.co/1280x720/0f766e/ffffff?text=Diskon+Material+Bangunan+(16:9)',
+        link: '#'
+      },
+      {
+        id: 's-3',
+        title: 'Template & Script Digital Premium',
+        imageUrl: 'https://placehold.co/1280x720/4338ca/ffffff?text=Aset+Digital+Terlengkap+(16:9)',
+        link: '#'
+      }
+    ];
+
+    const DEFAULT_PRODUCTS = [
+      {
+        id: 'p-1',
+        name: 'Source Code Landing Page Super Cepat',
+        categoryId: 'cat-digital',
+        price: 'Rp 149.000',
+        buyUrl: 'https://wa.me/6281234567890?text=Halo%20saya%20ingin%20beli%20Source%20Code%20Landing%20Page',
+        images: [
+          'https://placehold.co/200x300/2563eb/ffffff?text=Digital+App',
+          'https://placehold.co/600x400/1d4ed8/ffffff?text=Tampak+Depan+UI',
+          'https://placehold.co/600x400/3b82f6/ffffff?text=Dimensi+Fitur'
+        ],
+        desc: 'Source code landing page ultra responsif mendukung GitHub Pages dan Cloudflare. Siap pakai tanpa ribet backend database.',
+        isBestSeller: true
+      },
+      {
+        id: 'p-2',
+        name: 'Granit Tile Grey Marble 60x60 Grade A',
+        categoryId: 'cat-material',
+        price: 'Rp 185.000 / Dus',
+        buyUrl: 'https://wa.me/6281234567890?text=Halo%20saya%20ingin%20pesan%20Granit%20Tile',
+        images: [
+          'https://placehold.co/200x300/334155/ffffff?text=Granit+60x60',
+          'https://placehold.co/600x400/475569/ffffff?text=Detail+Tekstur',
+          'https://placehold.co/600x400/64748b/ffffff?text=Ukuran+Presisi'
+        ],
+        desc: 'Ubin granit lantai dengan finishing glossy anti gores kualitas ekspor. Tahan noda dan kokoh untuk area indoor.',
+        isBestSeller: true
+      },
+      {
+        id: 'p-3',
+        name: 'Desain Arsitektur Kos Minimalis 3 Lantai',
+        categoryId: 'cat-studio',
+        price: 'Rp 4.500.000',
+        buyUrl: 'https://wa.me/6281234567890?text=Halo%20saya%20ingin%20konsultasi%20Desain%20Kos',
+        images: [
+          'https://placehold.co/200x300/7c3aed/ffffff?text=Desain+Studio',
+          'https://placehold.co/600x400/6d28d9/ffffff?text=Fasad+Depan+Kos',
+          'https://placehold.co/600x400/5b21b6/ffffff?text=Denah+Dimensi+Kamar'
+        ],
+        desc: 'Paket gambar kerja lengkap 3D render, RAB perhitungan biaya material, dan instalasi mekanikal elektrikal.',
+        isBestSeller: true
+      },
+      {
+        id: 'p-4',
+        name: 'Paket Bangun Kos Kontraktual Siap Huni',
+        categoryId: 'cat-bangunkos',
+        price: 'Mulai Rp 3.2 Jt/m²',
+        buyUrl: 'https://wa.me/6281234567890?text=Halo%20saya%20ingin%20survey%20Bangun%20Kos',
+        images: [
+          'https://placehold.co/200x300/059669/ffffff?text=Bangun+Kos',
+          'https://placehold.co/600x400/047857/ffffff?text=Konstruksi+Rangka',
+          'https://placehold.co/600x400/065f46/ffffff?text=Interior+Kamar'
+        ],
+        desc: 'Solusi bangun kos terintegrasi dari pondasi hingga finishing interior kamar mandi dalam dan perabotan kamar.',
+        isBestSeller: false
+      },
+      {
+        id: 'p-5',
+        name: 'Semen Mortar Instan Perekat Bata 40kg',
+        categoryId: 'cat-material',
+        price: 'Rp 75.000 / Sak',
+        buyUrl: 'https://wa.me/6281234567890?text=Pesan%20Semen%20Mortar',
+        images: [
+          'https://placehold.co/200x300/b45309/ffffff?text=Semen+40kg',
+          'https://placehold.co/600x400/92400e/ffffff?text=Kemasan+Sak'
+        ],
+        desc: 'Semen instan siap pakai dengan daya rekat tinggi untuk pemasangan bata ringan cepat dan presisi.',
+        isBestSeller: true
+      },
+      {
+        id: 'p-6',
+        name: 'Design Interior Kamar Studio Kos Nyaman',
+        categoryId: 'cat-studio',
+        price: 'Rp 1.200.000',
+        buyUrl: 'https://wa.me/6281234567890?text=Pesan%20Desain%20Interior',
+        images: [
+          'https://placehold.co/200x300/d97706/ffffff?text=Interior+Kos',
+          'https://placehold.co/600x400/b45309/ffffff?text=Sudut+Meja+Belajar'
+        ],
+        desc: 'Layout efisien dengan furniture multifungsi untuk kamar ukuran 3x4 meter agar terkesan lapang.',
+        isBestSeller: false
+      }
+    ];
+
+    // State Aplikasi
+    let categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+    let sliders = JSON.parse(JSON.stringify(DEFAULT_SLIDERS));
+    let products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    let settings = {
+      address: 'Jl. Merdeka Karya No. 88, Kawasan Niaga Utama, Jakarta Selatan, DKI Jakarta 12540.',
+      phone: '6281234567890',
+      adminPassword: 'admin123'
+    };
+
+    let selectedCategoryId = 'ALL';
+    let currentSlideIndex = 0;
+    let sliderTimer = null;
+    let logoClickCount = 0;
+    let logoClickTimer = null;
+
+    /* ==========================================================================
+       DETEKSI JARINGAN INTERNET (POINT 14)
+       ========================================================================== */
+    const offlineToast = document.getElementById('offline-toast');
+    function checkNetworkStatus() {
+      if (!navigator.onLine) {
+        offlineToast.classList.remove('hidden');
+      } else {
+        offlineToast.classList.add('hidden');
+      }
+    }
+    window.addEventListener('online', checkNetworkStatus);
+    window.addEventListener('offline', checkNetworkStatus);
+    checkNetworkStatus();
+
+    /* ==========================================================================
+       THEME CONTROLLER (LIGHT / DARK)
+       ========================================================================== */
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+
+    function initTheme() {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        document.documentElement.classList.add('dark');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+      } else {
+        document.documentElement.classList.add('dark');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+      }
+    });
+
+    /* ==========================================================================
+       KEAMANAN & RAHASIA LOGIN ADMIN (POINT 1, 15)
+       ========================================================================== */
+    const brandLogoBtn = document.getElementById('brand-logo-btn');
+    const adminLoginModal = document.getElementById('admin-login-modal');
+    const closeLoginBtn = document.getElementById('close-login-btn');
+    const adminLoginForm = document.getElementById('admin-login-form');
+    const adminPassInput = document.getElementById('admin-pass-input');
+    const loginErrorMsg = document.getElementById('login-error-msg');
+    const adminDashboardModal = document.getElementById('admin-dashboard-modal');
+    const closeAdminPanelBtn = document.getElementById('close-admin-panel-btn');
+    const adminLogoutBtn = document.getElementById('admin-logout-btn');
+
+    // Akses Admin: Klik Logo Home 5x berturut-turut (dalam rentang waktu 2.5 detik)
+    brandLogoBtn.addEventListener('click', () => {
+      logoClickCount++;
+      clearTimeout(logoClickTimer);
+
+      // Efek visual klik halus pada logo
+      const iconBox = brandLogoBtn.querySelector('.floating-logo');
+      if (iconBox) {
+        iconBox.classList.add('scale-90');
+        setTimeout(() => iconBox.classList.remove('scale-90'), 150);
+      }
+
+      if (logoClickCount >= 5) {
+        logoClickCount = 0;
+        openLoginModal();
+      } else {
+        logoClickTimer = setTimeout(() => {
+          logoClickCount = 0;
+        }, 2500);
+      }
+    });
+
+    // Trigger Rahasia Tambahan: Shortcut Keyboard Ctrl + Shift + A
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        openLoginModal();
+      }
+    });
+
+    function openLoginModal() {
+      loginErrorMsg.classList.add('hidden');
+      adminPassInput.value = '';
+      adminLoginModal.classList.remove('hidden');
+      adminPassInput.focus();
+    }
+
+    closeLoginBtn.addEventListener('click', () => {
+      adminLoginModal.classList.add('hidden');
+    });
+
+    adminLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enteredPass = adminPassInput.value.trim();
+      if (enteredPass === settings.adminPassword) {
+        adminLoginModal.classList.add('hidden');
+        adminDashboardModal.classList.remove('hidden');
+        renderAdminProductTable();
+        renderAdminCategoryList();
+        renderAdminSliderList();
+        loadSettingsInputs();
+      } else {
+        loginErrorMsg.classList.remove('hidden');
+      }
+    });
+
+    closeAdminPanelBtn.addEventListener('click', () => {
+      adminDashboardModal.classList.add('hidden');
+    });
+
+    adminLogoutBtn.addEventListener('click', () => {
+      adminDashboardModal.classList.add('hidden');
+    });
+
+    /* ==========================================================================
+       SLIDER BANNER YOUTUBE RATIO 16:9 (POINT 2)
+       ========================================================================== */
+    const sliderTrack = document.getElementById('slider-track');
+    const sliderDots = document.getElementById('slider-dots');
+    const prevSlideBtn = document.getElementById('prev-slide-btn');
+    const nextSlideBtn = document.getElementById('next-slide-btn');
+
+    function renderSlider() {
+      sliderTrack.innerHTML = '';
+      sliderDots.innerHTML = '';
+
+      if (sliders.length === 0) {
+        sliderTrack.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400">Tidak ada banner</div>`;
+        return;
+      }
+
+      sliders.forEach((slide, index) => {
+        const slideEl = document.createElement('div');
+        slideEl.className = 'w-full h-full flex-shrink-0 relative overflow-hidden';
+        slideEl.innerHTML = `
+          <img src="${slide.imageUrl}" alt="${slide.title || 'Banner'}" class="w-full h-full object-cover select-none" onerror="this.src='https://placehold.co/1280x720/1e293b/ffffff?text=Banner+Gagal+Dimuat'" />
+          ${slide.title ? `
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4 sm:p-8">
+              <h3 class="text-white text-sm sm:text-2xl font-bold drop-shadow-md line-clamp-2">${slide.title}</h3>
+            </div>
+          ` : ''}
+        `;
+        if (slide.link && slide.link !== '#') {
+          slideEl.style.cursor = 'pointer';
+          slideEl.addEventListener('click', () => window.open(slide.link, '_blank'));
+        }
+        sliderTrack.appendChild(slideEl);
+
+        const dot = document.createElement('button');
+        dot.className = `w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all ${index === currentSlideIndex ? 'bg-white w-5 sm:w-7' : 'bg-white/50'}`;
+        dot.addEventListener('click', () => goToSlide(index));
+        sliderDots.appendChild(dot);
+      });
+
+      goToSlide(currentSlideIndex);
+      startAutoSlide();
+    }
+
+    function goToSlide(index) {
+      if (sliders.length === 0) return;
+      currentSlideIndex = (index + sliders.length) % sliders.length;
+      sliderTrack.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+      
+      const dots = sliderDots.children;
+      for (let i = 0; i < dots.length; i++) {
+        if (i === currentSlideIndex) {
+          dots[i].className = 'w-5 sm:w-7 h-2 sm:h-2.5 bg-white rounded-full transition-all';
+        } else {
+          dots[i].className = 'w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white/50 rounded-full transition-all';
+        }
+      }
+    }
+
+    function startAutoSlide() {
+      clearInterval(sliderTimer);
+      sliderTimer = setInterval(() => {
+        goToSlide(currentSlideIndex + 1);
+      }, 5000);
+    }
+
+    prevSlideBtn.addEventListener('click', () => {
+      goToSlide(currentSlideIndex - 1);
+      startAutoSlide();
+    });
+
+    nextSlideBtn.addEventListener('click', () => {
+      goToSlide(currentSlideIndex + 1);
+      startAutoSlide();
+    });
+
+    /* ==========================================================================
+       RENDER KATEGORI TABS (POINT 3, 12, 16)
+       ========================================================================== */
+    const categoryTabsContainer = document.getElementById('category-tabs');
+    const activeCatIndicator = document.getElementById('active-category-indicator');
+
+    function renderCategoryTabs() {
+      categoryTabsContainer.innerHTML = '';
+
+      // Tab 'Semua Kategori'
+      const allBtn = document.createElement('button');
+      const isAllActive = selectedCategoryId === 'ALL';
+      allBtn.className = `flex-shrink-0 flex items-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold transition ${
+        isAllActive 
+          ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+      }`;
+      allBtn.innerHTML = `<i class="fa-solid fa-border-all text-xs"></i> <span>Semua Kategori</span>`;
+      allBtn.addEventListener('click', () => {
+        selectedCategoryId = 'ALL';
+        renderCategoryTabs();
+        renderProducts();
+      });
+      categoryTabsContainer.appendChild(allBtn);
+
+      // Tab Perkategori
+      categories.forEach(cat => {
+        const isActive = selectedCategoryId === cat.id;
+        const btn = document.createElement('button');
+        btn.className = `flex-shrink-0 flex items-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold transition ${
+          isActive 
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`;
+        btn.innerHTML = `
+          <i class="fa-solid ${cat.icon || 'fa-tag'} text-xs"></i>
+          <span>${cat.name}</span>
+        `;
+        btn.addEventListener('click', () => {
+          selectedCategoryId = cat.id;
+          renderCategoryTabs();
+          renderProducts();
+        });
+        categoryTabsContainer.appendChild(btn);
+      });
+
+      // Update Label
+      if (selectedCategoryId === 'ALL') {
+        activeCatIndicator.textContent = `Menampilkan Semua (${products.length} produk)`;
+      } else {
+        const curCat = categories.find(c => c.id === selectedCategoryId);
+        const count = products.filter(p => p.categoryId === selectedCategoryId).length;
+        activeCatIndicator.textContent = `${curCat ? curCat.name : ''} (${count} produk)`;
+      }
+    }
+
+    /* ==========================================================================
+       RENDER PRODUK & KARTU ADAPTIF (POINT 3, 8, 16)
+       - Ukuran icon / cover 200x300 proporsional
+       - Menyusut rapi di layar HP (3 produk per baris)
+       ========================================================================== */
+    const productGrid = document.getElementById('product-grid');
+    const bestsellerGrid = document.getElementById('bestseller-grid');
+    const emptyState = document.getElementById('empty-state');
+    const sectionTitle = document.getElementById('section-title');
+    const sectionDesc = document.getElementById('section-desc');
+
+    function createProductCardHTML(prod) {
+      const mainImg = prod.images && prod.images.length > 0 ? prod.images[0] : 'https://placehold.co/200x300?text=No+Image';
+      const categoryObj = categories.find(c => c.id === prod.categoryId);
+      const catName = categoryObj ? categoryObj.name : 'Produk';
+
+      return `
+        <div class="product-card group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700/80 transition-all duration-200 cursor-pointer flex flex-col h-full" onclick="openProductDetail('${prod.id}')">
+          <!-- Gambar Rasio 200x300 (Aspect 2/3) Menyusut Responsive -->
+          <div class="relative w-full aspect-[2/3] bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+            <img src="${mainImg}" alt="${prod.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" onerror="this.src='https://placehold.co/200x300/2563eb/ffffff?text=Icon+200x300'" />
+            ${prod.isBestSeller ? `
+              <span class="absolute top-1 left-1 sm:top-2 sm:left-2 bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                Laris
+              </span>
+            ` : ''}
+          </div>
+
+          <!-- Deskripsi Produk Bawah -->
+          <div class="p-2 sm:p-3 flex flex-col flex-grow justify-between">
+            <div>
+              <span class="text-[9px] sm:text-[11px] text-blue-600 dark:text-blue-400 font-semibold block uppercase truncate">${catName}</span>
+              <h3 class="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight mt-0.5" title="${prod.name}">
+                ${prod.name}
+              </h3>
+            </div>
+            
+            <div class="mt-2 pt-1 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+              <span class="text-[10px] sm:text-xs font-extrabold text-blue-600 dark:text-blue-400 truncate">${prod.price}</span>
+              <span class="text-[9px] sm:text-[11px] bg-gray-100 dark:bg-gray-700 group-hover:bg-blue-600 group-hover:text-white text-gray-500 rounded p-1 transition">
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProducts() {
+      let filtered = [];
+      if (selectedCategoryId === 'ALL') {
+        filtered = products;
+        sectionTitle.textContent = 'Semua Produk';
+        sectionDesc.textContent = 'Menampilkan seluruh katalog produk berbagai kategori.';
+      } else {
+        filtered = products.filter(p => p.categoryId === selectedCategoryId);
+        const curCat = categories.find(c => c.id === selectedCategoryId);
+        sectionTitle.textContent = curCat ? curCat.name : 'Produk Kategori';
+        sectionDesc.textContent = curCat ? (curCat.desc || 'Koleksi terpilih untuk kategori ini.') : '';
+      }
+
+      if (filtered.length === 0) {
+        productGrid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        productGrid.innerHTML = filtered.map(createProductCardHTML).join('');
+      }
+
+      // Render Best Seller Grid (Point 10)
+      const bestSellers = products.filter(p => p.isBestSeller);
+      if (bestSellers.length > 0) {
+        bestsellerGrid.innerHTML = bestSellers.map(createProductCardHTML).join('');
+      } else {
+        bestsellerGrid.innerHTML = `<p class="col-span-full text-xs text-gray-400 py-3">Belum ada produk yang ditandai terlaris.</p>`;
+      }
+    }
+
+    /* ==========================================================================
+       MODAL DETAIL PRODUK DENGAN MULTI FOTO & BUY LINK TAB BARU (POINT 5, 7, 17)
+       ========================================================================== */
+    const productDetailModal = document.getElementById('product-detail-modal');
+    const modalCategoryName = document.getElementById('modal-category-name');
+    const modalMainImg = document.getElementById('modal-main-img');
+    const modalThumbnails = document.getElementById('modal-thumbnails');
+    const modalTitle = document.getElementById('modal-title');
+    const modalPrice = document.getElementById('modal-price');
+    const modalDescription = document.getElementById('modal-description');
+    const modalBadgeBestseller = document.getElementById('modal-badge-bestseller');
+    const modalBuyLink = document.getElementById('modal-buy-link');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalBackBtn = document.getElementById('modal-back-btn');
+    const modalFooterBackBtn = document.getElementById('modal-footer-back-btn');
+
+    function openProductDetail(productId) {
+      const prod = products.find(p => p.id === productId);
+      if (!prod) return;
+
+      const catObj = categories.find(c => c.id === prod.categoryId);
+      modalCategoryName.textContent = catObj ? catObj.name : 'Detail Produk';
+      modalTitle.textContent = prod.name;
+      modalPrice.textContent = prod.price;
+      modalDescription.textContent = prod.desc;
+
+      if (prod.isBestSeller) {
+        modalBadgeBestseller.classList.remove('hidden');
+      } else {
+        modalBadgeBestseller.classList.add('hidden');
+      }
+
+      // Link Pembelian (Buka Tab Baru / Target _blank)
+      modalBuyLink.href = prod.buyUrl || '#';
+
+      // Setup Galeri Gambar Tampak Depan, Belakang, Dimensi dll (Point 17)
+      const images = (prod.images && prod.images.length > 0) 
+        ? prod.images 
+        : ['https://placehold.co/600x400/2563eb/ffffff?text=Produk'];
+
+      modalMainImg.src = images[0];
+      modalThumbnails.innerHTML = '';
+
+      if (images.length > 1) {
+        images.forEach((imgUrl, idx) => {
+          const thumb = document.createElement('img');
+          thumb.src = imgUrl;
+          thumb.alt = `Foto ${idx + 1}`;
+          thumb.className = `w-14 h-14 object-cover rounded-lg border-2 cursor-pointer transition ${idx === 0 ? 'border-blue-600 scale-95' : 'border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100'}`;
+          thumb.addEventListener('click', () => {
+            modalMainImg.src = imgUrl;
+            // Highlight active thumb
+            Array.from(modalThumbnails.children).forEach(el => {
+              el.classList.remove('border-blue-600', 'scale-95');
+              el.classList.add('border-gray-200', 'dark:border-gray-700', 'opacity-70');
+            });
+            thumb.classList.remove('border-gray-200', 'dark:border-gray-700', 'opacity-70');
+            thumb.classList.add('border-blue-600', 'scale-95');
+          });
+          modalThumbnails.appendChild(thumb);
+        });
+        modalThumbnails.classList.remove('hidden');
+      } else {
+        modalThumbnails.classList.add('hidden');
+      }
+
+      productDetailModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      // Dukungan tombol Back ponsel (History API)
+      window.history.pushState({ modalOpen: true }, '');
+    }
+
+    function closeProductDetail() {
+      productDetailModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    modalCloseBtn.addEventListener('click', closeProductDetail);
+    modalBackBtn.addEventListener('click', closeProductDetail);
+    modalFooterBackBtn.addEventListener('click', closeProductDetail);
+
+    // Tekan tombol back di ponsel / browser menutup modal
+    window.addEventListener('popstate', (e) => {
+      if (!productDetailModal.classList.contains('hidden')) {
+        closeProductDetail();
+      }
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!productDetailModal.classList.contains('hidden')) closeProductDetail();
+        if (!adminLoginModal.classList.contains('hidden')) adminLoginModal.classList.add('hidden');
+      }
+    });
+
+    /* ==========================================================================
+       ADMIN TAB SWITCHING & DASHBOARD OPERATIONS (POINT 9, 12, 13, 20)
+       ========================================================================= */
+    const adminTabBtns = document.querySelectorAll('.admin-tab-btn');
+    const adminViews = [
+      document.getElementById('admin-products-view'),
+      document.getElementById('admin-categories-view'),
+      document.getElementById('admin-sliders-view'),
+      document.getElementById('admin-settings-view')
+    ];
+
+    adminTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+
+        adminTabBtns.forEach(b => {
+          b.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'font-bold');
+          b.classList.add('border-transparent', 'text-gray-500');
+        });
+        btn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'font-bold');
+        btn.classList.remove('border-transparent', 'text-gray-500');
+
+        adminViews.forEach(v => {
+          if (v.id === targetId) {
+            v.classList.remove('hidden');
+          } else {
+            v.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // CRUD PRODUK
+    const productCrudForm = document.getElementById('product-crud-form');
+    const crudProductId = document.getElementById('crud-product-id');
+    const crudProductName = document.getElementById('crud-product-name');
+    const crudProductCat = document.getElementById('crud-product-cat');
+    const crudProductPrice = document.getElementById('crud-product-price');
+    const crudProductBuyUrl = document.getElementById('crud-product-buyurl');
+    const crudProductImages = document.getElementById('crud-product-images');
+    const crudProductDesc = document.getElementById('crud-product-desc');
+    const crudProductBestseller = document.getElementById('crud-product-bestseller');
+    const adminProductTableBody = document.getElementById('admin-product-table-body');
+    const productFormTitle = document.getElementById('product-form-title');
+    const cancelProductBtn = document.getElementById('cancel-product-btn');
+
+    function populateCategoryDropdown() {
+      crudProductCat.innerHTML = categories.map(c => `
+        <option value="${c.id}">${c.name}</option>
+      `).join('');
+    }
+
+    function renderAdminProductTable() {
+      populateCategoryDropdown();
+      adminProductTableBody.innerHTML = '';
+
+      products.forEach(p => {
+        const cat = categories.find(c => c.id === p.categoryId);
+        const mainImg = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/100';
+
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50';
+        tr.innerHTML = `
+          <td class="p-2">
+            <img src="${mainImg}" class="w-10 h-12 object-cover rounded shadow-sm" onerror="this.src='https://placehold.co/100'" />
+          </td>
+          <td class="p-2">
+            <div class="font-bold text-gray-900 dark:text-white">${p.name}</div>
+            <div class="text-[10px] text-blue-600">${cat ? cat.name : 'Unknown'}</div>
+          </td>
+          <td class="p-2 font-medium">${p.price}</td>
+          <td class="p-2">
+            ${p.isBestSeller ? '<span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Ya</span>' : '<span class="text-[10px] text-gray-400">Tidak</span>'}
+          </td>
+          <td class="p-2 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="editProduct('${p.id}')" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg" title="Edit Produk">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="deleteProduct('${p.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Hapus Produk">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        adminProductTableBody.appendChild(tr);
+      });
+    }
+
+    // Simpan / Update Produk
+    productCrudForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = crudProductId.value.trim() || 'p-' + Date.now();
+      const name = crudProductName.value.trim();
+      const categoryId = crudProductCat.value;
+      const price = crudProductPrice.value.trim();
+      const buyUrl = crudProductBuyUrl.value.trim();
+      const desc = crudProductDesc.value.trim();
+      const isBestSeller = crudProductBestseller.checked;
+
+      // Parsing daftar image blogspot (pisahkan koma)
+      const rawImages = crudProductImages.value.split(',').map(s => s.trim()).filter(Boolean);
+      const images = rawImages.length > 0 ? rawImages : ['https://placehold.co/200x300?text=Produk'];
+
+      const existingIndex = products.findIndex(p => p.id === id);
+      if (existingIndex > -1) {
+        // Update
+        products[existingIndex] = { id, name, categoryId, price, buyUrl, images, desc, isBestSeller };
+      } else {
+        // Tambah Baru
+        products.unshift({ id, name, categoryId, price, buyUrl, images, desc, isBestSeller });
+      }
+
+      resetProductForm();
+      renderAdminProductTable();
+      renderCategoryTabs();
+      renderProducts();
+    });
+
+    window.editProduct = function(id) {
+      const p = products.find(prod => prod.id === id);
+      if (!p) return;
+
+      crudProductId.value = p.id;
+      crudProductName.value = p.name;
+      crudProductCat.value = p.categoryId;
+      crudProductPrice.value = p.price;
+      crudProductBuyUrl.value = p.buyUrl;
+      crudProductImages.value = p.images ? p.images.join(', ') : '';
+      crudProductDesc.value = p.desc;
+      crudProductBestseller.checked = !!p.isBestSeller;
+
+      productFormTitle.innerHTML = '<i class="fa-solid fa-pen text-amber-500"></i> Edit Produk';
+      cancelProductBtn.classList.remove('hidden');
+      productCrudForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.deleteProduct = function(id) {
+      if (window.confirm('Yakin ingin menghapus produk ini dari katalog?')) {
+        products = products.filter(p => p.id !== id);
+        renderAdminProductTable();
+        renderProducts();
+      }
+    };
+
+    cancelProductBtn.addEventListener('click', resetProductForm);
+
+    function resetProductForm() {
+      crudProductId.value = '';
+      productCrudForm.reset();
+      productFormTitle.innerHTML = '<i class="fa-solid fa-plus-circle text-blue-600"></i> Tambah Produk Baru';
+      cancelProductBtn.classList.add('hidden');
+    }
+
+    // CRUD KATEGORI (POINT 12)
+    const categoryCrudForm = document.getElementById('category-crud-form');
+    const crudCatId = document.getElementById('crud-cat-id');
+    const crudCatName = document.getElementById('crud-cat-name');
+    const crudCatIcon = document.getElementById('crud-cat-icon');
+    const crudCatDesc = document.getElementById('crud-cat-desc');
+    const adminCategoryList = document.getElementById('admin-category-list');
+
+    function renderAdminCategoryList() {
+      adminCategoryList.innerHTML = '';
+      categories.forEach(c => {
+        const count = products.filter(p => p.categoryId === c.id).length;
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700';
+        item.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center text-xs">
+              <i class="fa-solid ${c.icon || 'fa-tag'}"></i>
+            </span>
+            <div>
+              <p class="text-xs font-bold text-gray-900 dark:text-white">${c.name}</p>
+              <p class="text-[10px] text-gray-500">${count} produk terhubung</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="deleteCategory('${c.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs" title="Hapus Kategori">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        adminCategoryList.appendChild(item);
+      });
+      populateCategoryDropdown();
+    }
+
+    categoryCrudForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = crudCatName.value.trim();
+      const icon = crudCatIcon.value.trim() || 'fa-tag';
+      const desc = crudCatDesc.value.trim();
+      const id = 'cat-' + Date.now();
+
+      categories.push({ id, name, icon, desc });
+      categoryCrudForm.reset();
+      renderAdminCategoryList();
+      renderCategoryTabs();
+    });
+
+    window.deleteCategory = function(catId) {
+      if (categories.length <= 1) {
+        window.alert('Minimal harus tersisa 1 kategori.');
+        return;
+      }
+      if (window.confirm('Hapus kategori ini? Produk terkait akan dipindah ke kategori pertama.')) {
+        const fallbackCat = categories.find(c => c.id !== catId);
+        products.forEach(p => {
+          if (p.categoryId === catId) p.categoryId = fallbackCat.id;
+        });
+        categories = categories.filter(c => c.id !== catId);
+        if (selectedCategoryId === catId) selectedCategoryId = 'ALL';
+
+        renderAdminCategoryList();
+        renderAdminProductTable();
+        renderCategoryTabs();
+        renderProducts();
+      }
+    };
+
+    // CRUD SLIDER BANNER (POINT 2)
+    const sliderCrudForm = document.getElementById('slider-crud-form');
+    const crudSliderUrl = document.getElementById('crud-slider-url');
+    const crudSliderTitle = document.getElementById('crud-slider-title');
+    const crudSliderLink = document.getElementById('crud-slider-link');
+    const adminSliderList = document.getElementById('admin-slider-list');
+
+    function renderAdminSliderList() {
+      adminSliderList.innerHTML = '';
+      sliders.forEach((sl, idx) => {
+        const card = document.createElement('div');
+        card.className = 'border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex flex-col';
+        card.innerHTML = `
+          <div class="aspect-video w-full bg-gray-200 dark:bg-gray-900 relative">
+            <img src="${sl.imageUrl}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x337?text=Banner+Gagal'" />
+          </div>
+          <div class="p-2.5 flex items-center justify-between text-xs">
+            <span class="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">${sl.title || 'Slide ' + (idx+1)}</span>
+            <button onclick="deleteSlider('${sl.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg" title="Hapus Slide">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        adminSliderList.appendChild(card);
+      });
+    }
+
+    sliderCrudForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const imageUrl = crudSliderUrl.value.trim();
+      const title = crudSliderTitle.value.trim();
+      const link = crudSliderLink.value.trim() || '#';
+      const id = 's-' + Date.now();
+
+      sliders.push({ id, imageUrl, title, link });
+      sliderCrudForm.reset();
+      renderAdminSliderList();
+      renderSlider();
+    });
+
+    window.deleteSlider = function(sliderId) {
+      if (sliders.length <= 1) {
+        window.alert('Minimal harus tersisa 1 slider banner.');
+        return;
+      }
+      sliders = sliders.filter(s => s.id !== sliderId);
+      currentSlideIndex = 0;
+      renderAdminSliderList();
+      renderSlider();
+    };
+
+    // PENGATURAN TOKO & FOOTER (POINT 11)
+    const settingsForm = document.getElementById('settings-form');
+    const setAddress = document.getElementById('set-address');
+    const setPhone = document.getElementById('set-phone');
+    const setPassword = document.getElementById('set-password');
+    const footerAddress = document.getElementById('footer-address');
+    const footerWaLink = document.getElementById('footer-wa-link');
+
+    function loadSettingsInputs() {
+      setAddress.value = settings.address;
+      setPhone.value = settings.phone;
+      setPassword.value = settings.adminPassword;
+    }
+
+    settingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      settings.address = setAddress.value.trim() || settings.address;
+      settings.phone = setPhone.value.trim().replace(/[^0-9]/g, '') || settings.phone;
+      if (setPassword.value.trim()) {
+        settings.adminPassword = setPassword.value.trim();
+      }
+
+      footerAddress.textContent = settings.address;
+      footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
+      footerWaLink.querySelector('span').textContent = `Chat WhatsApp (+${settings.phone})`;
+
+      window.alert('Pengaturan toko berhasil diperbarui!');
+    });
+
+    /* ==========================================================================
+       EXPORT & IMPORT DATABASE EXCEL / CSV (POINT 18, 19, 20)
+       ========================================================================== */
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    const importExcelFile = document.getElementById('import-excel-file');
+
+    // Export produk ke format file CSV yang dapat dibuka langsung di Microsoft Excel
+    exportExcelBtn.addEventListener('click', () => {
+      const headers = ['ID', 'Nama_Produk', 'Kategori_ID', 'Harga', 'Link_Pembelian', 'Link_Foto_Blogspot', 'Deskripsi', 'BestSeller'];
+      const rows = products.map(p => {
+        const cleanDesc = `"${(p.desc || '').replace(/"/g, '""')}"`;
+        const cleanName = `"${(p.name || '').replace(/"/g, '""')}"`;
+        const imgList = `"${(p.images ? p.images.join('|') : '').replace(/"/g, '""')}"`;
+        return [
+          p.id,
+          cleanName,
+          p.categoryId,
+          `"${p.price}"`,
+          `"${p.buyUrl}"`,
+          imgList,
+          cleanDesc,
+          p.isBestSeller ? '1' : '0'
+        ].join(',');
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Database_Produk_MegaStore_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Import dari File CSV Excel
+    importExcelFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const text = event.target.result;
+          const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
+          if (lines.length <= 1) {
+            window.alert('File CSV kosong atau format tidak sesuai.');
+            return;
+          }
+
+          const parsedProducts = [];
+          for (let i = 1; i < lines.length; i++) {
+            // Regex splitter CSV
+            const parts = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (parts.length >= 6) {
+              const clean = (val) => val ? val.trim().replace(/^"|"$/g, '').replace(/""/g, '"') : '';
+              const id = clean(parts[0]) || 'p-' + Date.now() + '-' + i;
+              const name = clean(parts[1]);
+              const categoryId = clean(parts[2]) || categories[0].id;
+              const price = clean(parts[3]) || 'Rp 0';
+              const buyUrl = clean(parts[4]) || '#';
+              const rawImages = clean(parts[5]).split('|').map(u => u.trim()).filter(Boolean);
+              const desc = clean(parts[6]) || '';
+              const isBestSeller = clean(parts[7]) === '1' || clean(parts[7]).toLowerCase() === 'true';
+
+              parsedProducts.push({
+                id,
+                name,
+                categoryId,
+                price,
+                buyUrl,
+                images: rawImages.length > 0 ? rawImages : ['https://placehold.co/200x300'],
+                desc,
+                isBestSeller
+              });
+            }
+          }
+
+          if (parsedProducts.length > 0) {
+            products = parsedProducts;
+            renderAdminProductTable();
+            renderProducts();
+            window.alert(`Sukses mengimpor ${parsedProducts.length} produk dari file Excel!`);
+          }
+        } catch (err) {
+          window.alert('Gagal memproses file Excel CSV: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    /* ==========================================================================
+       STARTUP EXECUTION
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      renderSlider();
+      renderCategoryTabs();
+      renderProducts();
+    });
+  </script>
+</body>
+</html>
