@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Katalog & Landing Page Toko</title>
+  <title>INBES STORE</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -382,6 +382,12 @@
             <input type="file" id="import-excel-file" accept=".csv" class="hidden" />
           </label>
 
+          <!-- Tombol Download File HTML untuk GitHub/Cloudflare Pages -->
+          <button id="download-html-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm" title="Unduh index.html dengan data terbaru untuk GitHub & Cloudflare">
+            <i class="fa-solid fa-download"></i>
+            <span class="hidden sm:inline">Unduh index.html</span>
+          </button>
+
           <button id="admin-logout-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-1" title="Keluar dari Admin">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span class="hidden sm:inline">Keluar</span>
@@ -733,6 +739,41 @@
       adminPassword: 'admin123'
     };
 
+    /* ==========================================================================
+       LOAD DATA DARI STORAGE SAAT HALAMAN DIBUKA (MENCEGAH RESET SAAT REFRESH)
+       ========================================================================== */
+    function loadLocalSavedData() {
+      try {
+        const savedCat = localStorage.getItem('megastore_categories');
+        const savedSli = localStorage.getItem('megastore_sliders');
+        const savedPro = localStorage.getItem('megastore_products');
+        const savedSet = localStorage.getItem('megastore_settings');
+
+        if (savedCat) categories = JSON.parse(savedCat);
+        else categories = [...DEFAULT_CATEGORIES];
+
+        if (savedSli) sliders = JSON.parse(savedSli);
+        else sliders = [...DEFAULT_SLIDERS];
+
+        if (savedPro) products = JSON.parse(savedPro);
+        else products = [...DEFAULT_PRODUCTS];
+
+        if (savedSet) {
+          settings = JSON.parse(savedSet);
+          updateFooterDisplay();
+        } else {
+          settings = { ...DEFAULT_SETTINGS };
+        }
+      } catch (e) {
+        console.warn('Gagal membaca storage, menggunakan default:', e);
+        categories = [...DEFAULT_CATEGORIES];
+        sliders = [...DEFAULT_SLIDERS];
+        products = [...DEFAULT_PRODUCTS];
+        settings = { ...DEFAULT_SETTINGS };
+      }
+    }
+
+    // Variabel state aplikasi
     let categories = [...DEFAULT_CATEGORIES];
     let sliders = [...DEFAULT_SLIDERS];
     let products = [...DEFAULT_PRODUCTS];
@@ -741,6 +782,15 @@
     let dbInstance = null;
     let authUser = null;
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'megastore-catalog-v1';
+
+    function updateFooterDisplay() {
+      if (footerAddress && settings.address) footerAddress.textContent = settings.address;
+      if (footerWaLink && settings.phone) {
+        footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
+        const spanText = footerWaLink.querySelector('span');
+        if (spanText) spanText.textContent = `Chat WhatsApp (+${settings.phone})`;
+      }
+    }
 
     // Fungsi Notifikasi Toast Sukses
     function showNotification(message) {
@@ -758,14 +808,43 @@
       }, 3000);
     }
 
+    /* Simpan ke Local Storage & Cloud Database */
+    async function saveData() {
+      // 1. Simpan langsung ke Local Storage (Pasti tersimpan & tidak reset saat refresh di browser ini)
+      try {
+        localStorage.setItem('megastore_categories', JSON.stringify(categories));
+        localStorage.setItem('megastore_sliders', JSON.stringify(sliders));
+        localStorage.setItem('megastore_products', JSON.stringify(products));
+        localStorage.setItem('megastore_settings', JSON.stringify(settings));
+      } catch (err) {
+        console.warn('Gagal menulis ke localStorage:', err);
+      }
+
+      // 2. Simpan ke Cloud Server (bila koneksi tersedia)
+      if (dbInstance && authUser && window._fb) {
+        try {
+          const { doc, setDoc } = window._fb;
+          const catalogDocRef = doc(dbInstance, 'artifacts', appId, 'public', 'data', 'store_data', 'main_catalog');
+          await setDoc(catalogDocRef, {
+            categories,
+            sliders,
+            products,
+            settings,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (err) {
+          console.warn('Cloud sync offline:', err);
+        }
+      }
+
+      showNotification('Data berhasil disimpan permanen!');
+    }
+
     /* Inisialisasi Cloud Storage Sinkronisasi Publik */
     async function initCloudSync() {
-      if (typeof __firebase_config === 'undefined' || !window._fb) {
-        console.warn('Mode offline/lokal aktif.');
-        return;
-      }
+      if (typeof __firebase_config === 'undefined' || !window._fb) return;
       try {
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, doc, setDoc, onSnapshot } = window._fb;
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, doc, onSnapshot } = window._fb;
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -778,10 +857,8 @@
         }
         authUser = auth.currentUser;
 
-        // Path publik untuk kolaborasi multi-user/multi-perangkat
         const catalogDocRef = doc(dbInstance, 'artifacts', appId, 'public', 'data', 'store_data', 'main_catalog');
 
-        // Listener real-time: jika perangkat lain update data, tampilan di sini langsung berubah otomatis
         onSnapshot(catalogDocRef, (snap) => {
           if (snap.exists()) {
             const cloudData = snap.data();
@@ -790,10 +867,16 @@
             if (cloudData.products) products = cloudData.products;
             if (cloudData.settings) {
               settings = cloudData.settings;
-              footerAddress.textContent = settings.address;
-              footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
-              footerWaLink.querySelector('span').textContent = `Chat WhatsApp (+${settings.phone})`;
+              updateFooterDisplay();
             }
+
+            // Sync balik ke lokal
+            try {
+              localStorage.setItem('megastore_categories', JSON.stringify(categories));
+              localStorage.setItem('megastore_sliders', JSON.stringify(sliders));
+              localStorage.setItem('megastore_products', JSON.stringify(products));
+              localStorage.setItem('megastore_settings', JSON.stringify(settings));
+            } catch (e) {}
 
             renderSlider();
             renderCategoryTabs();
@@ -806,11 +889,11 @@
             }
           }
         }, (error) => {
-          console.error("Cloud sync snapshot error:", error);
+          console.error("Cloud snapshot error:", error);
         });
 
       } catch (err) {
-        console.error("Inisialisasi cloud database gagal:", err);
+        console.warn("Cloud sync tidak aktif:", err);
       }
     }
 
@@ -1380,7 +1463,7 @@
         products.unshift({ id, name, categoryId, price, buyUrl, images, desc, isBestSeller });
       }
 
-      await syncToCloud(); // Simpan dan sinkronkan ke semua browser & akun
+      await saveData(); // Simpan permanen ke storage & cloud
       resetProductForm();
       renderAdminProductTable();
       renderCategoryTabs();
@@ -1408,7 +1491,7 @@
     window.deleteProduct = async function(id) {
       if (window.confirm('Yakin ingin menghapus produk ini dari katalog?')) {
         products = products.filter(p => p.id !== id);
-        await syncToCloud(); // Simpan perubahan ke Cloud
+        await saveData(); // Simpan permanen
         renderAdminProductTable();
         renderProducts();
       }
@@ -1466,7 +1549,7 @@
       const id = 'cat-' + Date.now();
 
       categories.push({ id, name, icon, desc });
-      await syncToCloud(); // Simpan ke Cloud
+      await saveData(); // Simpan permanen
       categoryCrudForm.reset();
       renderAdminCategoryList();
       renderCategoryTabs();
@@ -1485,7 +1568,7 @@
         categories = categories.filter(c => c.id !== catId);
         if (selectedCategoryId === catId) selectedCategoryId = 'ALL';
 
-        await syncToCloud();
+        await saveData();
         renderAdminCategoryList();
         renderAdminProductTable();
         renderCategoryTabs();
@@ -1542,7 +1625,7 @@
         sliders.push({ id, imageUrl, title, link });
       }
 
-      await syncToCloud(); // SIMPAN DAN BROADCAST KE SEMUA PERANGKAT
+      await saveData(); // Simpan permanen
       resetSliderForm();
       renderAdminSliderList();
       renderSlider();
@@ -1577,7 +1660,7 @@
         return;
       }
       sliders = sliders.filter(s => s.id !== sliderId);
-      await syncToCloud(); // Simpan perubahan ke Cloud
+      await saveData(); // Simpan permanen
       currentSlideIndex = 0;
       renderAdminSliderList();
       renderSlider();
@@ -1605,11 +1688,40 @@
         settings.adminPassword = setPassword.value.trim();
       }
 
-      await syncToCloud(); // Simpan ke Cloud
-      footerAddress.textContent = settings.address;
-      footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
-      footerWaLink.querySelector('span').textContent = `Chat WhatsApp (+${settings.phone})`;
+      await saveData(); // Simpan permanen
+      updateFooterDisplay();
     });
+
+    /* ==========================================================================
+       FITUR DOWNLOAD FILE HTML SIAP DEPLOY (UNTUK GITHUB & CLOUDFLARE)
+       ========================================================================== */
+    const downloadHtmlBtn = document.getElementById('download-html-btn');
+    if (downloadHtmlBtn) {
+      downloadHtmlBtn.addEventListener('click', () => {
+        let fullHtml = document.documentElement.outerHTML;
+
+        // Tanamkan data saat ini langsung ke dalam konstanta DEFAULT agar ketika diupload ke GitHub/Cloudflare,
+        // seluruh orang di dunia langsung melihat data ini tanpa tergantung browser apa pun.
+        const catStr = JSON.stringify(categories, null, 2);
+        const sliStr = JSON.stringify(sliders, null, 2);
+        const proStr = JSON.stringify(products, null, 2);
+        const setStr = JSON.stringify(settings, null, 2);
+
+        fullHtml = fullHtml.replace(/const DEFAULT_CATEGORIES = \[[\s\S]*?\];/, `const DEFAULT_CATEGORIES = ${catStr};`);
+        fullHtml = fullHtml.replace(/const DEFAULT_SLIDERS = \[[\s\S]*?\];/, `const DEFAULT_SLIDERS = ${sliStr};`);
+        fullHtml = fullHtml.replace(/const DEFAULT_PRODUCTS = \[[\s\S]*?\];/, `const DEFAULT_PRODUCTS = ${proStr};`);
+        fullHtml = fullHtml.replace(/const DEFAULT_SETTINGS = \{[\s\S]*?\};/, `const DEFAULT_SETTINGS = ${setStr};`);
+
+        const blob = new Blob(['<!DOCTYPE html>\n' + fullHtml], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'index.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showNotification('File index.html berhasil diunduh! Upload file ini ke GitHub / Cloudflare.');
+      });
+    }
 
     /* ==========================================================================
        EXPORT & IMPORT DATABASE EXCEL / CSV (POINT 18, 19, 20)
@@ -1691,7 +1803,7 @@
 
           if (parsedProducts.length > 0) {
             products = parsedProducts;
-            await syncToCloud(); // Simpan dan broadcast ke Cloud
+            await saveData(); // Simpan dan broadcast ke Cloud & Storage
             renderAdminProductTable();
             renderProducts();
           }
@@ -1707,6 +1819,7 @@
        STARTUP EXECUTION
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', () => {
+      loadLocalSavedData(); // Baca data dari localStorage terlebih dahulu sebelum render
       initTheme();
       renderSlider();
       renderCategoryTabs();
