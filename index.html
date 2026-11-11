@@ -53,6 +53,14 @@
       scrollbar-width: none;
     }
   </style>
+  <!-- Firebase & Cloud SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    window._fb = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, doc, getDoc, setDoc, onSnapshot };
+  </script>
 </head>
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col font-sans">
 
@@ -353,7 +361,11 @@
           </div>
           <div>
             <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Panel Kelola Toko & Database</h2>
-            <p class="text-[11px] text-gray-500">Sinkronisasi Blogspot, Banner, Kategori & Excel</p>
+            <div class="flex items-center gap-1.5 text-[11px] text-gray-500">
+              <span id="cloud-sync-status" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <i class="fa-solid fa-cloud"></i> Cloud Live Sync Aktif
+              </span>
+            </div>
           </div>
         </div>
         
@@ -600,7 +612,7 @@
   <!-- ==================== LOGIKA UTAMA APLIKASI (JAVASCRIPT) ==================== -->
   <script>
     /* ==========================================================================
-       DATA DEFAULT & INISIALISASI DATABASE LOCALSTORAGE PERMANEN
+       DATA DEFAULT & INISIALISASI DATABASE CLOUD MULTI-DEVICE
        ========================================================================== */
     const DEFAULT_CATEGORIES = [
       { id: 'cat-digital', name: 'Produk Digital', icon: 'fa-laptop-code', desc: 'Source code, template & aset desain' },
@@ -721,24 +733,14 @@
       adminPassword: 'admin123'
     };
 
-    // Fungsi Load dari localStorage agar tidak hilang saat di-refresh
-    function loadData(key, fallback) {
-      try {
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : fallback;
-      } catch (e) {
-        return fallback;
-      }
-    }
+    let categories = [...DEFAULT_CATEGORIES];
+    let sliders = [...DEFAULT_SLIDERS];
+    let products = [...DEFAULT_PRODUCTS];
+    let settings = { ...DEFAULT_SETTINGS };
 
-    // Fungsi Simpan ke localStorage
-    function saveData(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-      } catch (e) {
-        console.error('Gagal menyimpan ke localStorage:', e);
-      }
-    }
+    let dbInstance = null;
+    let authUser = null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'megastore-catalog-v1';
 
     // Fungsi Notifikasi Toast Sukses
     function showNotification(message) {
@@ -756,11 +758,82 @@
       }, 3000);
     }
 
-    // Inisialisasi State dengan Penyimpanan Permanen
-    let categories = loadData('ms_categories', DEFAULT_CATEGORIES);
-    let sliders = loadData('ms_sliders', DEFAULT_SLIDERS);
-    let products = loadData('ms_products', DEFAULT_PRODUCTS);
-    let settings = loadData('ms_settings', DEFAULT_SETTINGS);
+    /* Inisialisasi Cloud Storage Sinkronisasi Publik */
+    async function initCloudSync() {
+      if (typeof __firebase_config === 'undefined' || !window._fb) {
+        console.warn('Mode offline/lokal aktif.');
+        return;
+      }
+      try {
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, doc, setDoc, onSnapshot } = window._fb;
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        dbInstance = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+        authUser = auth.currentUser;
+
+        // Path publik untuk kolaborasi multi-user/multi-perangkat
+        const catalogDocRef = doc(dbInstance, 'artifacts', appId, 'public', 'data', 'store_data', 'main_catalog');
+
+        // Listener real-time: jika perangkat lain update data, tampilan di sini langsung berubah otomatis
+        onSnapshot(catalogDocRef, (snap) => {
+          if (snap.exists()) {
+            const cloudData = snap.data();
+            if (cloudData.categories) categories = cloudData.categories;
+            if (cloudData.sliders) sliders = cloudData.sliders;
+            if (cloudData.products) products = cloudData.products;
+            if (cloudData.settings) {
+              settings = cloudData.settings;
+              footerAddress.textContent = settings.address;
+              footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
+              footerWaLink.querySelector('span').textContent = `Chat WhatsApp (+${settings.phone})`;
+            }
+
+            renderSlider();
+            renderCategoryTabs();
+            renderProducts();
+            if (!adminDashboardModal.classList.contains('hidden')) {
+              renderAdminProductTable();
+              renderAdminCategoryList();
+              renderAdminSliderList();
+              loadSettingsInputs();
+            }
+          }
+        }, (error) => {
+          console.error("Cloud sync snapshot error:", error);
+        });
+
+      } catch (err) {
+        console.error("Inisialisasi cloud database gagal:", err);
+      }
+    }
+
+    // Fungsi Simpan ke Cloud Server Publik (Bisa diakses dari semua akun & perangkat)
+    async function syncToCloud() {
+      if (!dbInstance || !authUser) {
+        return;
+      }
+      try {
+        const { doc, setDoc } = window._fb;
+        const catalogDocRef = doc(dbInstance, 'artifacts', appId, 'public', 'data', 'store_data', 'main_catalog');
+        await setDoc(catalogDocRef, {
+          categories,
+          sliders,
+          products,
+          settings,
+          updatedAt: new Date().toISOString()
+        });
+        showNotification('Perubahan berhasil di-update ke Cloud Server! Semua perangkat tersinkron.');
+      } catch (err) {
+        console.error('Gagal sinkron ke Cloud:', err);
+      }
+    }
 
     let selectedCategoryId = 'ALL';
     let currentSlideIndex = 0;
@@ -1284,7 +1357,7 @@
     }
 
     // Simpan / Update Produk
-    productCrudForm.addEventListener('submit', (e) => {
+    productCrudForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = crudProductId.value.trim() || 'p-' + Date.now();
       const name = crudProductName.value.trim();
@@ -1307,8 +1380,7 @@
         products.unshift({ id, name, categoryId, price, buyUrl, images, desc, isBestSeller });
       }
 
-      saveData('ms_products', products); // Simpan permanen ke localStorage
-      showNotification('Produk berhasil disimpan dan disinkronkan!');
+      await syncToCloud(); // Simpan dan sinkronkan ke semua browser & akun
       resetProductForm();
       renderAdminProductTable();
       renderCategoryTabs();
@@ -1333,11 +1405,10 @@
       productCrudForm.scrollIntoView({ behavior: 'smooth' });
     };
 
-    window.deleteProduct = function(id) {
+    window.deleteProduct = async function(id) {
       if (window.confirm('Yakin ingin menghapus produk ini dari katalog?')) {
         products = products.filter(p => p.id !== id);
-        saveData('ms_products', products); // Simpan perubahan
-        showNotification('Produk berhasil dihapus!');
+        await syncToCloud(); // Simpan perubahan ke Cloud
         renderAdminProductTable();
         renderProducts();
       }
@@ -1387,7 +1458,7 @@
       populateCategoryDropdown();
     }
 
-    categoryCrudForm.addEventListener('submit', (e) => {
+    categoryCrudForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = crudCatName.value.trim();
       const icon = crudCatIcon.value.trim() || 'fa-tag';
@@ -1395,14 +1466,13 @@
       const id = 'cat-' + Date.now();
 
       categories.push({ id, name, icon, desc });
-      saveData('ms_categories', categories); // Simpan permanen
-      showNotification('Kategori baru berhasil ditambahkan!');
+      await syncToCloud(); // Simpan ke Cloud
       categoryCrudForm.reset();
       renderAdminCategoryList();
       renderCategoryTabs();
     });
 
-    window.deleteCategory = function(catId) {
+    window.deleteCategory = async function(catId) {
       if (categories.length <= 1) {
         showNotification('Minimal harus tersisa 1 kategori.');
         return;
@@ -1415,9 +1485,7 @@
         categories = categories.filter(c => c.id !== catId);
         if (selectedCategoryId === catId) selectedCategoryId = 'ALL';
 
-        saveData('ms_categories', categories);
-        saveData('ms_products', products);
-        showNotification('Kategori berhasil dihapus!');
+        await syncToCloud();
         renderAdminCategoryList();
         renderAdminProductTable();
         renderCategoryTabs();
@@ -1425,7 +1493,7 @@
       }
     };
 
-    // CRUD SLIDER BANNER (POINT 2 + PENYIMPANAN PERMANEN)
+    // CRUD SLIDER BANNER (POINT 2 + SINKRONISASI CLOUD)
     const sliderCrudForm = document.getElementById('slider-crud-form');
     const crudSliderId = document.getElementById('crud-slider-id');
     const crudSliderUrl = document.getElementById('crud-slider-url');
@@ -1460,7 +1528,7 @@
       });
     }
 
-    sliderCrudForm.addEventListener('submit', (e) => {
+    sliderCrudForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = crudSliderId.value.trim() || ('s-' + Date.now());
       const imageUrl = crudSliderUrl.value.trim();
@@ -1474,8 +1542,7 @@
         sliders.push({ id, imageUrl, title, link });
       }
 
-      saveData('ms_sliders', sliders); // SIMPAN PERMANEN KE LOCALSTORAGE
-      showNotification('Slide berhasil disimpan dan disinkronkan!');
+      await syncToCloud(); // SIMPAN DAN BROADCAST KE SEMUA PERANGKAT
       resetSliderForm();
       renderAdminSliderList();
       renderSlider();
@@ -1504,14 +1571,13 @@
 
     cancelSliderBtn.addEventListener('click', resetSliderForm);
 
-    window.deleteSlider = function(sliderId) {
+    window.deleteSlider = async function(sliderId) {
       if (sliders.length <= 1) {
         showNotification('Minimal harus tersisa 1 slider banner.');
         return;
       }
       sliders = sliders.filter(s => s.id !== sliderId);
-      saveData('ms_sliders', sliders); // Simpan perubahan ke localStorage
-      showNotification('Slide berhasil dihapus!');
+      await syncToCloud(); // Simpan perubahan ke Cloud
       currentSlideIndex = 0;
       renderAdminSliderList();
       renderSlider();
@@ -1531,7 +1597,7 @@
       setPassword.value = settings.adminPassword;
     }
 
-    settingsForm.addEventListener('submit', (e) => {
+    settingsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       settings.address = setAddress.value.trim() || settings.address;
       settings.phone = setPhone.value.trim().replace(/[^0-9]/g, '') || settings.phone;
@@ -1539,12 +1605,10 @@
         settings.adminPassword = setPassword.value.trim();
       }
 
-      saveData('ms_settings', settings); // Simpan permanen ke localStorage
+      await syncToCloud(); // Simpan ke Cloud
       footerAddress.textContent = settings.address;
       footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
       footerWaLink.querySelector('span').textContent = `Chat WhatsApp (+${settings.phone})`;
-
-      showNotification('Pengaturan toko berhasil disimpan!');
     });
 
     /* ==========================================================================
@@ -1588,7 +1652,7 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = async function(event) {
         try {
           const text = event.target.result;
           const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
@@ -1627,10 +1691,9 @@
 
           if (parsedProducts.length > 0) {
             products = parsedProducts;
-            saveData('ms_products', products); // Simpan permanen
+            await syncToCloud(); // Simpan dan broadcast ke Cloud
             renderAdminProductTable();
             renderProducts();
-            showNotification(`Sukses mengimpor ${parsedProducts.length} produk dari Excel!`);
           }
         } catch (err) {
           showNotification('Gagal memproses file Excel: ' + err.message);
@@ -1648,6 +1711,7 @@
       renderSlider();
       renderCategoryTabs();
       renderProducts();
+      initCloudSync(); // Inisialisasi Cloud Sync Publik
     });
   </script>
 </body>
