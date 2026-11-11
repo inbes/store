@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>INBES BY ALUSINDO KONTRAKTOR</title>
+  <title>Katalog & Landing Page Toko</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -73,9 +73,9 @@
         </div>
         <div>
           <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white leading-tight flex items-center gap-1.5">
-            INBES <span class="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded"></span>
+            MegaStore <span class="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded">Pro</span>
           </h1>
-          <p class="text-[11px] text-gray-500 dark:text-gray-400">By ALUSINDO KONTRAKTOR</p>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400">Pusat Material, Digital & Properti</p>
         </div>
       </div>
 
@@ -529,27 +529,34 @@
         <!-- TAB 3: KELOLA SLIDER THUMBNAIL (POINT 2) -->
         <div id="admin-sliders-view" class="space-y-6 hidden">
           <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <h3 id="slider-form-title" class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <i class="fa-solid fa-image text-blue-600"></i> Tambah Banner Slider (Rasio 16:9 ala YouTube)
             </h3>
             <form id="slider-crud-form" class="space-y-3">
+              <input type="hidden" id="crud-slider-id" value="" />
               <div>
                 <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Link Gambar Banner dari Blogspot (16:9) *</label>
-                <input type="url" id="crud-slider-url" required placeholder="https://1.bp.blogspot.com/.../banner-youtube-ratio.jpg" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                <input type="url" id="crud-slider-url" required placeholder="https://1.bp.blogspot.com/.../banner-youtube-ratio.jpg" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Judul / Slogan Banner</label>
-                  <input type="text" id="crud-slider-title" placeholder="Promo Diskon Material 2026" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                  <input type="text" id="crud-slider-title" placeholder="Promo Diskon Material 2026" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label class="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Link Klik (opsional)</label>
-                  <input type="text" id="crud-slider-link" placeholder="# atau https://..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none" />
+                  <input type="text" id="crud-slider-link" placeholder="# atau https://..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500" />
                 </div>
               </div>
-              <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-                <i class="fa-solid fa-plus"></i> Tambahkan Slide
-              </button>
+              <div class="flex items-center gap-2 pt-1">
+                <button type="submit" id="save-slider-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <span>Simpan Slide & Sinkronkan</span>
+                </button>
+                <button type="button" id="cancel-slider-btn" class="hidden px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-semibold">
+                  Batal Edit
+                </button>
+              </div>
             </form>
           </div>
 
@@ -593,7 +600,7 @@
   <!-- ==================== LOGIKA UTAMA APLIKASI (JAVASCRIPT) ==================== -->
   <script>
     /* ==========================================================================
-       DATA DEFAULT & INISIALISASI DATABASE LOCAL IN-MEMORY
+       DATA DEFAULT & INISIALISASI DATABASE LOCALSTORAGE PERMANEN
        ========================================================================== */
     const DEFAULT_CATEGORIES = [
       { id: 'cat-digital', name: 'Produk Digital', icon: 'fa-laptop-code', desc: 'Source code, template & aset desain' },
@@ -708,15 +715,52 @@
       }
     ];
 
-    // State Aplikasi
-    let categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-    let sliders = JSON.parse(JSON.stringify(DEFAULT_SLIDERS));
-    let products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-    let settings = {
+    const DEFAULT_SETTINGS = {
       address: 'Jl. Merdeka Karya No. 88, Kawasan Niaga Utama, Jakarta Selatan, DKI Jakarta 12540.',
       phone: '6281234567890',
       adminPassword: 'admin123'
     };
+
+    // Fungsi Load dari localStorage agar tidak hilang saat di-refresh
+    function loadData(key, fallback) {
+      try {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    // Fungsi Simpan ke localStorage
+    function saveData(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        console.error('Gagal menyimpan ke localStorage:', e);
+      }
+    }
+
+    // Fungsi Notifikasi Toast Sukses
+    function showNotification(message) {
+      let toast = document.getElementById('admin-success-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'admin-success-toast';
+        toast.className = 'fixed bottom-5 right-5 z-[100] bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold transition-all transform duration-300 opacity-0 translate-y-3';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-sm"></i> <span>${message}</span>`;
+      toast.classList.remove('opacity-0', 'translate-y-3');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-3');
+      }, 3000);
+    }
+
+    // Inisialisasi State dengan Penyimpanan Permanen
+    let categories = loadData('ms_categories', DEFAULT_CATEGORIES);
+    let sliders = loadData('ms_sliders', DEFAULT_SLIDERS);
+    let products = loadData('ms_products', DEFAULT_PRODUCTS);
+    let settings = loadData('ms_settings', DEFAULT_SETTINGS);
 
     let selectedCategoryId = 'ALL';
     let currentSlideIndex = 0;
@@ -1263,6 +1307,8 @@
         products.unshift({ id, name, categoryId, price, buyUrl, images, desc, isBestSeller });
       }
 
+      saveData('ms_products', products); // Simpan permanen ke localStorage
+      showNotification('Produk berhasil disimpan dan disinkronkan!');
       resetProductForm();
       renderAdminProductTable();
       renderCategoryTabs();
@@ -1290,6 +1336,8 @@
     window.deleteProduct = function(id) {
       if (window.confirm('Yakin ingin menghapus produk ini dari katalog?')) {
         products = products.filter(p => p.id !== id);
+        saveData('ms_products', products); // Simpan perubahan
+        showNotification('Produk berhasil dihapus!');
         renderAdminProductTable();
         renderProducts();
       }
@@ -1347,6 +1395,8 @@
       const id = 'cat-' + Date.now();
 
       categories.push({ id, name, icon, desc });
+      saveData('ms_categories', categories); // Simpan permanen
+      showNotification('Kategori baru berhasil ditambahkan!');
       categoryCrudForm.reset();
       renderAdminCategoryList();
       renderCategoryTabs();
@@ -1354,7 +1404,7 @@
 
     window.deleteCategory = function(catId) {
       if (categories.length <= 1) {
-        window.alert('Minimal harus tersisa 1 kategori.');
+        showNotification('Minimal harus tersisa 1 kategori.');
         return;
       }
       if (window.confirm('Hapus kategori ini? Produk terkait akan dipindah ke kategori pertama.')) {
@@ -1365,6 +1415,9 @@
         categories = categories.filter(c => c.id !== catId);
         if (selectedCategoryId === catId) selectedCategoryId = 'ALL';
 
+        saveData('ms_categories', categories);
+        saveData('ms_products', products);
+        showNotification('Kategori berhasil dihapus!');
         renderAdminCategoryList();
         renderAdminProductTable();
         renderCategoryTabs();
@@ -1372,12 +1425,15 @@
       }
     };
 
-    // CRUD SLIDER BANNER (POINT 2)
+    // CRUD SLIDER BANNER (POINT 2 + PENYIMPANAN PERMANEN)
     const sliderCrudForm = document.getElementById('slider-crud-form');
+    const crudSliderId = document.getElementById('crud-slider-id');
     const crudSliderUrl = document.getElementById('crud-slider-url');
     const crudSliderTitle = document.getElementById('crud-slider-title');
     const crudSliderLink = document.getElementById('crud-slider-link');
     const adminSliderList = document.getElementById('admin-slider-list');
+    const sliderFormTitle = document.getElementById('slider-form-title');
+    const cancelSliderBtn = document.getElementById('cancel-slider-btn');
 
     function renderAdminSliderList() {
       adminSliderList.innerHTML = '';
@@ -1390,9 +1446,14 @@
           </div>
           <div class="p-2.5 flex items-center justify-between text-xs">
             <span class="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">${sl.title || 'Slide ' + (idx+1)}</span>
-            <button onclick="deleteSlider('${sl.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg" title="Hapus Slide">
-              <i class="fa-solid fa-trash"></i>
-            </button>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button onclick="editSlider('${sl.id}')" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg" title="Edit Slide">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="deleteSlider('${sl.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg" title="Hapus Slide">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </div>
         `;
         adminSliderList.appendChild(card);
@@ -1401,23 +1462,56 @@
 
     sliderCrudForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      const id = crudSliderId.value.trim() || ('s-' + Date.now());
       const imageUrl = crudSliderUrl.value.trim();
       const title = crudSliderTitle.value.trim();
       const link = crudSliderLink.value.trim() || '#';
-      const id = 's-' + Date.now();
 
-      sliders.push({ id, imageUrl, title, link });
-      sliderCrudForm.reset();
+      const existingIndex = sliders.findIndex(s => s.id === id);
+      if (existingIndex > -1) {
+        sliders[existingIndex] = { id, imageUrl, title, link };
+      } else {
+        sliders.push({ id, imageUrl, title, link });
+      }
+
+      saveData('ms_sliders', sliders); // SIMPAN PERMANEN KE LOCALSTORAGE
+      showNotification('Slide berhasil disimpan dan disinkronkan!');
+      resetSliderForm();
       renderAdminSliderList();
       renderSlider();
     });
 
+    window.editSlider = function(sliderId) {
+      const sl = sliders.find(s => s.id === sliderId);
+      if (!sl) return;
+
+      crudSliderId.value = sl.id;
+      crudSliderUrl.value = sl.imageUrl;
+      crudSliderTitle.value = sl.title || '';
+      crudSliderLink.value = sl.link || '';
+
+      sliderFormTitle.innerHTML = '<i class="fa-solid fa-pen text-amber-500"></i> Edit Banner Slider';
+      cancelSliderBtn.classList.remove('hidden');
+      sliderCrudForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function resetSliderForm() {
+      crudSliderId.value = '';
+      sliderCrudForm.reset();
+      sliderFormTitle.innerHTML = '<i class="fa-solid fa-image text-blue-600"></i> Tambah Banner Slider (Rasio 16:9 ala YouTube)';
+      cancelSliderBtn.classList.add('hidden');
+    }
+
+    cancelSliderBtn.addEventListener('click', resetSliderForm);
+
     window.deleteSlider = function(sliderId) {
       if (sliders.length <= 1) {
-        window.alert('Minimal harus tersisa 1 slider banner.');
+        showNotification('Minimal harus tersisa 1 slider banner.');
         return;
       }
       sliders = sliders.filter(s => s.id !== sliderId);
+      saveData('ms_sliders', sliders); // Simpan perubahan ke localStorage
+      showNotification('Slide berhasil dihapus!');
       currentSlideIndex = 0;
       renderAdminSliderList();
       renderSlider();
@@ -1445,11 +1539,12 @@
         settings.adminPassword = setPassword.value.trim();
       }
 
+      saveData('ms_settings', settings); // Simpan permanen ke localStorage
       footerAddress.textContent = settings.address;
       footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20MegaStore`;
       footerWaLink.querySelector('span').textContent = `Chat WhatsApp (+${settings.phone})`;
 
-      window.alert('Pengaturan toko berhasil diperbarui!');
+      showNotification('Pengaturan toko berhasil disimpan!');
     });
 
     /* ==========================================================================
@@ -1498,7 +1593,7 @@
           const text = event.target.result;
           const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
           if (lines.length <= 1) {
-            window.alert('File CSV kosong atau format tidak sesuai.');
+            showNotification('File CSV kosong atau format tidak sesuai.');
             return;
           }
 
@@ -1532,12 +1627,13 @@
 
           if (parsedProducts.length > 0) {
             products = parsedProducts;
+            saveData('ms_products', products); // Simpan permanen
             renderAdminProductTable();
             renderProducts();
-            window.alert(`Sukses mengimpor ${parsedProducts.length} produk dari file Excel!`);
+            showNotification(`Sukses mengimpor ${parsedProducts.length} produk dari Excel!`);
           }
         } catch (err) {
-          window.alert('Gagal memproses file Excel CSV: ' + err.message);
+          showNotification('Gagal memproses file Excel: ' + err.message);
         }
       };
       reader.readAsText(file);
