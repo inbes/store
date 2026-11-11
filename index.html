@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>INBES STORE</title>
+  <title>INBES BY ALUSINDO</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -81,9 +81,9 @@
         </div>
         <div>
           <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white leading-tight flex items-center gap-1.5">
-            MegaStore <span class="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded">Pro</span>
+            INBES <span class="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded">STORE</span>
           </h1>
-          <p class="text-[11px] text-gray-500 dark:text-gray-400">Pusat Material, Digital & Properti</p>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400">By ALUSINDO KONTRAKTOR</p>
         </div>
       </div>
 
@@ -1698,10 +1698,15 @@
     const downloadHtmlBtn = document.getElementById('download-html-btn');
     if (downloadHtmlBtn) {
       downloadHtmlBtn.addEventListener('click', () => {
+        // 1. Pastikan semua popup modal (Admin & Detail Produk) tertutup sebelum HTML dicloning
+        adminDashboardModal.classList.add('hidden');
+        adminLoginModal.classList.add('hidden');
+        productDetailModal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+
         let fullHtml = document.documentElement.outerHTML;
 
-        // Tanamkan data saat ini langsung ke dalam konstanta DEFAULT agar ketika diupload ke GitHub/Cloudflare,
-        // seluruh orang di dunia langsung melihat data ini tanpa tergantung browser apa pun.
+        // 2. Tanamkan data produk, slider, kategori & pengaturan toko terbaru ke dalam konstanta DEFAULT
         const catStr = JSON.stringify(categories, null, 2);
         const sliStr = JSON.stringify(sliders, null, 2);
         const proStr = JSON.stringify(products, null, 2);
@@ -1712,6 +1717,21 @@
         fullHtml = fullHtml.replace(/const DEFAULT_PRODUCTS = \[[\s\S]*?\];/, `const DEFAULT_PRODUCTS = ${proStr};`);
         fullHtml = fullHtml.replace(/const DEFAULT_SETTINGS = \{[\s\S]*?\};/, `const DEFAULT_SETTINGS = ${setStr};`);
 
+        // 3. Pastikan modal admin tetap memiliki class "hidden" di string file yang diunduh
+        fullHtml = fullHtml.replace(
+          /<div id="admin-dashboard-modal"[^>]*>/,
+          '<div id="admin-dashboard-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4">'
+        );
+        fullHtml = fullHtml.replace(
+          /<div id="admin-login-modal"[^>]*>/,
+          '<div id="admin-login-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">'
+        );
+        fullHtml = fullHtml.replace(
+          /<div id="product-detail-modal"[^>]*>/,
+          '<div id="product-detail-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 transition-opacity">'
+        );
+
+        // 4. Unduh file bersih
         const blob = new Blob(['<!DOCTYPE html>\n' + fullHtml], { type: 'text/html' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -1719,7 +1739,11 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        showNotification('File index.html berhasil diunduh! Upload file ini ke GitHub / Cloudflare.');
+
+        // Buka kembali dashboard untuk sesi admin saat ini
+        adminDashboardModal.classList.remove('hidden');
+
+        showNotification('File index.html berhasil diunduh dengan tampilan landing page bersih!');
       });
     }
 
