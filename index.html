@@ -2,7 +2,7 @@
 <html lang="id" class="scroll-smooth"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>INBES Store by ALUSINDO</title>
+  <title>IBES by ALUSINDO</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -154,7 +154,7 @@
   <!-- ==================== INTERNET OFFLINE WARNING (POINT 14) ==================== -->
   <div id="offline-toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden bg-red-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-sm font-medium border border-red-400 animate-bounce">
     <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-    <span>Koneksi Internet Terputus! Cek kembali jaringan atau kuota internet kamu.</span>
+    <span>Yah.. Koneksi Internet Kamu Terputus Bes! Cek kembali jaringan atau kuota internet kamu.</span>
   </div>
 
   <!-- ==================== HEADER DENGAN LOGO FLOATING & THEME TOGGLE (POINT 1) ==================== -->
@@ -168,9 +168,9 @@
         </div>
         <div>
           <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white leading-tight flex items-center gap-1.5">
-            INBES <span class="text-[10px] font-bold tracking-wider uppercase brass-badge-soft px-2 py-0.5 rounded">STORE</span>
+            IBES <span class="text-[10px] font-bold tracking-wider uppercase brass-badge-soft px-2 py-0.5 rounded">STORE</span>
           </h1>
-          <p class="text-[11px] text-gray-500 dark:text-gray-400">By ALUSINDO KONTRAKTOR</p>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400">By ALUSINDO</p>
         </div>
       </div>
 
@@ -543,7 +543,7 @@
           <div class="w-7 h-7 rounded-lg brass-metallic text-white flex items-center justify-center text-xs">
             <i class="fa-solid fa-store"></i>
           </div>
-          <h3 class="font-bold text-base text-gray-900 dark:text-white">INBES By ALUSINDO</h3>
+          <h3 class="font-bold text-base text-gray-900 dark:text-white">IBES By ALUSINDO</h3>
         </div>
         <p class="text-gray-600 dark:text-gray-400 leading-relaxed text-xs sm:text-sm">
           Platform pemesanan Produk Digital, Material Bangunan, Layanan Studio Desain, Kelas Privat Kontraktor, dan Manajemen Bangun Rumah &amp; Kos terpercaya.
@@ -567,7 +567,7 @@
         <p class="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
           Konsultasi produk dan respon cepat admin via WhatsApp:
         </p>
-        <a id="footer-wa-link" href="https://wa.me/6281315953328?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20INBES%20Store" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-md shadow-emerald-600/20">
+        <a id="footer-wa-link" href="https://wa.me/6281315953328?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20IBES%20Store" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-md shadow-emerald-600/20">
           <i class="fa-brands fa-whatsapp text-lg"></i>
           <span>Chat WhatsApp (+6281315953328)</span>
         </a>
@@ -576,7 +576,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto border-t border-gray-100 dark:border-gray-800/80 mt-6 pt-4 text-center text-xs text-gray-400">
-      © 2026 INBES STORE By ALUSINDO KONTRAKTOR
+      © 2026 IBES STORE By ALUSINDO
     </div>
   </footer>
 
@@ -1293,7 +1293,7 @@
     function updateFooterDisplay() {
       if (footerAddress && settings.address) footerAddress.textContent = settings.address;
       if (footerWaLink && settings.phone) {
-        footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20INBES%20Store`;
+        footerWaLink.href = `https://wa.me/${settings.phone}?text=Halo%20Admin,%20saya%20ingin%20tanya%20produk%20di%20IBES%20Store`;
         const spanText = footerWaLink.querySelector('span');
         if (spanText) spanText.textContent = `Chat WhatsApp (+${settings.phone})`;
       }
